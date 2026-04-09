@@ -1,0 +1,92 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+      - name: Install frontend deps
+        run: cd frontend && npm install
+      - name: Build
+        run: wails build -platform windows/amd64 -o kaely-pos.exe
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kaely-pos-windows-x64
+          path: build/bin/kaely-pos.exe
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install system deps
+        run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+      - name: Install frontend deps
+        run: cd frontend && npm install
+      - name: Build
+        run: wails build -platform linux/amd64
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kaely-pos-linux-x64
+          path: build/bin/kaely-pos
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+      - name: Install frontend deps
+        run: cd frontend && npm install
+      - name: Build
+        run: wails build -platform darwin/universal
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kaely-pos-macos-universal
+          path: build/bin/kaely-pos.app
+
+  release:
+    needs: [build-windows, build-linux, build-macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            kaely-pos-windows-x64/kaely-pos.exe
+            kaely-pos-linux-x64/kaely-pos
+          draft: false
+          generate_release_notes: true
