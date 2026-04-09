@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans antialiased;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  input, textarea {
+    user-select: text;
+    -webkit-user-select: text;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-kaely-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-kaely-700 active:bg-kaely-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-semibold hover:bg-gray-300 active:bg-gray-400 transition-colors;
+  }
+  .btn-danger {
+    @apply bg-red-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-700 active:bg-red-800 transition-colors;
+  }
+  .btn-success {
+    @apply bg-emerald-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-emerald-700 active:bg-emerald-800 transition-colors;
+  }
+  .input-field {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-kaely-500 focus:border-kaely-500 outline-none transition-shadow;
+  }
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-200;
+  }
+  .numpad-btn {
+    @apply w-full h-14 text-2xl font-bold rounded-lg bg-gray-100 hover:bg-gray-200 active:bg-gray-300 transition-colors flex items-center justify-center;
+  }
+}
