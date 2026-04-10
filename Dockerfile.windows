@@ -1,0 +1,33 @@
+# Build KaelyTech POS for Windows x64
+# Usage: docker build -f Dockerfile.windows -t kaely-pos-builder . && docker cp $(docker create kaely-pos-builder):/output/kaely-pos.exe ./dist/
+
+FROM golang:1.22-bookworm AS builder
+
+# Install Node.js 20 + cross-compile tools
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs gcc-mingw-w64-x86-64 && \
+    npm install -g npm@latest
+
+# Install Wails CLI
+RUN go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+WORKDIR /app
+COPY . .
+
+# Install frontend deps
+RUN cd frontend && npm install
+
+# Build for Windows x64
+ENV CGO_ENABLED=1
+ENV CC=x86_64-w64-mingw32-gcc
+ENV GOOS=windows
+ENV GOARCH=amd64
+
+RUN wails build -platform windows/amd64 -o kaely-pos.exe || \
+    echo "Wails build failed, trying manual Go build..." && \
+    cd frontend && npm run build && cd .. && \
+    go build -o build/bin/kaely-pos.exe -ldflags="-H windowsgui" .
+
+# Output stage
+FROM scratch
+COPY --from=builder /app/build/bin/kaely-pos.exe /output/kaely-pos.exe
